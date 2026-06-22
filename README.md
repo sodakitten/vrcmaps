@@ -1,42 +1,39 @@
 # vrcmaps
 
-VRChat 世界收藏浏览器 —— 自动读取本地 VRCX 客户端收藏，通过 VRChat 公开 API 获取实时数据与封面。
+VRChat world browser — reads local VRCX favorites, fetches live data and covers from VRChat public API.
 
-## 功能
-
-- 自动读取 VRCX 数据库（%APPDATA%/VRCX/VRCX.sqlite3），无需手动导入
-- 通过 VRChat 公开 API 获取世界实时热度、收藏数、访问量（无需登录）
-- 从 VRChat CDN 下载世界封面图并本地缓存
-- 按 VRCX 收藏分组归类展示，支持多个收藏夹
-- 纯静态 HTML 页面，文字即时渲染
-
-## 快速开始
+## Quick Start
 
 ```bash
-cd server
-npm install
-npm start
+pip install pyinstaller
+pyinstaller --onefile --name vrcmaps --add-data "covers;covers" --console vrcmaps.py
 ```
 
-浏览器打开 http://localhost:3456
+Or run directly:
 
-首次启动会自动读取 VRCX 数据并调用 VRChat API，等待数秒后刷新页面即可。点击页面顶部刷新链接可随时重新同步。
+```bash
+python vrcmaps.py
+```
 
-## 工作原理
+Browser opens automatically at http://127.0.0.1:3456
 
-1. 服务器启动，读取本机 VRCX.sqlite3 的 favorite_world 和 cache_world 表
-2. 对每个世界调用 VRChat 公开 API（GET /api/1/worlds/{id}）
-3. 下载封面图到 public/covers/
-4. 生成静态 HTML 页面，按分组展示
+On first launch the app reads VRCX database, fetches VRChat API data, and downloads cover images. This takes a few seconds. Refresh the page once data is loaded.
 
-## 依赖
+## How it works
 
-- Node.js + Express
-- sql.js（SQLite WASM，无需原生编译）
-- VRChat 公开 API（api.vrchat.cloud）
-- 本地需安装 VRCX 客户端
+1. Reads local VRCX.sqlite3 — `favorite_world` and `cache_world` tables
+2. Calls VRChat public API for each world (no login required)
+3. Downloads cover images from VRChat CDN, caches in `covers/` directory
+4. Generates a static HTML page grouped by favorite categories
+5. Starts a local HTTP server on port 3456
 
-## 相关项目
+## Dependencies
 
-- [VRCX](https://github.com/vrcx-team/VRCX) —— VRChat 伴侣应用
-- [VRChat API 文档](https://vrchat.community/reference/get-world)
+- Python 3.9+ (stdlib only — `sqlite3`, `http.server`, `urllib`)
+- VRCX client installed locally
+- VRChat public API (api.vrchat.cloud)
+
+## See also
+
+- [VRCX](https://github.com/vrcx-team/VRCX)
+- [VRChat API docs](https://vrchat.community/reference/get-world)
