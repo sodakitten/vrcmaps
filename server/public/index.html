@@ -1,0 +1,58 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>vrcmaps - VRChat World Browser</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <header class="topbar">
+    <div class="logo">
+      <svg width="28" height="28" viewBox="0 0 28 28"><rect x="2" y="2" width="10" height="10" rx="2" fill="#58a6ff"/><rect x="16" y="2" width="10" height="10" rx="2" fill="#3fb950"/><rect x="2" y="16" width="10" height="10" rx="2" fill="#f0883e"/><rect x="16" y="16" width="10" height="10" rx="2" fill="#bc8cff"/></svg>
+      <span>vrcmaps</span>
+    </div>
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Search worlds by name, author, or paste VRChat world ID..." autocomplete="off">
+      <button id="searchBtn">Search</button>
+      <button id="lookupBtn" title="Look up by World ID">Lookup ID</button>
+    </div>
+    <div class="stats-mini" id="statsMini">
+      <span class="stat-item">Worlds: <strong id="statWorlds">-</strong></span>
+      <span class="stat-item">Online: <strong id="statPlayers">-</strong></span>
+    </div>
+  </header>
+
+  <main>
+    <div class="toolbar">
+      <div class="sort-group">
+        <span>Sort:</span>
+        <button class="sort-btn active" data-sort="heat">Hot</button>
+        <button class="sort-btn" data-sort="favorites">Favorites</button>
+        <button class="sort-btn" data-sort="visits">Visits</button>
+        <button class="sort-btn" data-sort="capacity">Capacity</button>
+        <button class="sort-btn" data-sort="recent">Recent</button>
+      </div>
+      <button id="refreshCovers" class="action-btn" title="Fetch missing covers">🖼 Fetch Covers</button>
+    </div>
+
+    <div class="world-grid" id="worldGrid">
+      <div class="loading">Loading worlds...</div>
+    </div>
+
+    <div class="pagination" id="pagination"></div>
+  </main>
+
+  <!-- World Detail Modal -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal" id="modal">
+      <button class="modal-close" id="modalClose">&times;</button>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
