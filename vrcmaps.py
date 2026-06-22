@@ -335,7 +335,7 @@ border-radius:50%;animation:spin 1s linear infinite;margin-bottom:16px}
 <body><div>
 <div class="spinner"></div>
 <h1>vrcmaps</h1>
-<p>{'Reading VRCX database, fetching VRChat data...' if LANG == 'en' else '正在读取 VRCX 数据库，获取 VRChat 实时数据...'}</p>
+<p>""" + loading_text + """</p>
 <p style="font-size:0.75em;margin-top:12px;color:#484f58">{'Page will refresh automatically' if LANG == 'en' else '页面将自动刷新'}</p>
 </div></body></html>"""
     with open(HTML_PATH, "w", encoding="utf-8") as f:
