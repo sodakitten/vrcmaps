@@ -315,6 +315,49 @@ function switchTab(name) {{
 </body>
 </html>"""
 
+
+def write_loading_page():
+    html = """<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><meta http-equiv="refresh" content="3">
+<title>vrcmaps</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d1117;color:#e6edf3;font-family:-apple-system,BlinkMacSystemFont,"Microsoft YaHei",sans-serif;
+display:flex;align-items:center;justify-content:center;height:100vh;text-align:center}
+h1{color:#58a6ff;font-size:1.4em;margin-bottom:8px}
+p{color:#8b949e;font-size:0.9em}
+.spinner{display:inline-block;width:40px;height:40px;border:3px solid #30363d;border-top-color:#58a6ff;
+border-radius:50%;animation:spin 1s linear infinite;margin-bottom:16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style></head>
+<body><div>
+<div class="spinner"></div>
+<h1>vrcmaps</h1>
+<p>正在读取 VRCX 数据库，获取 VRChat 实时数据...</p>
+<p style="font-size:0.75em;margin-top:12px;color:#484f58">页面将自动刷新</p>
+</div></body></html>"""
+    with open(HTML_PATH, "w", encoding="utf-8") as f:
+        f.write(html)
+
+
+class VrcMapHandler(SimpleHTTPRequestHandler):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, directory=os.path.dirname(os.path.abspath(__file__)), **kwargs)
+
+    def log_message(self, format, *args):
+        pass
+
+def start_server():
+    server = HTTPServer(("127.0.0.1", PORT), VrcMapHandler)
+    log("[vrcmaps] http://127.0.0.1:" + str(PORT))
+    webbrowser.open("http://127.0.0.1:" + str(PORT))
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        pass
+    server.shutdown()
+
 def main():
     log("[vrcmaps] Starting...")
     write_loading_page()
@@ -366,4 +409,13 @@ def main():
     log("[vrcmaps] Shutting down...")
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        import traceback
+        tb = traceback.format_exc()
+        log("FATAL ERROR:\n" + tb)
+        try:
+            input("\nPress Enter to exit...")
+        except Exception:
+            pass
