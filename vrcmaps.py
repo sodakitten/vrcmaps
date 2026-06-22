@@ -351,13 +351,33 @@ def main():
     with open(HTML_PATH, "w", encoding="utf-8") as f:
         f.write(html)
     log("[vrcmaps] Data ready. Refresh your browser.")
-    log("[vrcmaps] Press Ctrl+C to stop.")
-
+    log("[vrcmaps] Ready. R = refresh, Q = quit.")
     try:
         while True:
-            time.sleep(1)
+            try:
+                cmd = input().strip().lower()
+                if cmd == 'r':
+                    log("[vrcmaps] Refreshing...")
+                    worlds = load_vrcx_favorites()
+                    if worlds:
+                        worlds = fetch_live_data(worlds)
+                        html = build_html(worlds)
+                        with open(HTML_PATH, "w", encoding="utf-8") as f:
+                            f.write(html)
+                        live = sum(1 for w in worlds if w["live"])
+                        dead = sum(1 for w in worlds if not w["live"])
+                        log("[vrcmaps] Done. {} live, {} deleted".format(live, dead))
+                    else:
+                        log("[vrcmaps] No worlds found")
+                elif cmd == 'q':
+                    break
+                else:
+                    log("[vrcmaps] Unknown: " + cmd + ". R = refresh, Q = quit")
+            except EOFError:
+                time.sleep(1)
     except KeyboardInterrupt:
-        log("[vrcmaps] Shutting down...")
+        pass
+    log("[vrcmaps] Shutting down...")
 
 if __name__ == "__main__":
     main()
