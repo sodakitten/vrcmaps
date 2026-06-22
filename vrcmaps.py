@@ -166,7 +166,7 @@ def fm(n):
 
 def build_card(w, is_deleted):
     cover = f'<img src="{w["cover_local"]}" alt="" loading="lazy">' if w["cover_local"] else "&#127758;"
-    badge = '<span class="gone">deleted</span>' if is_deleted else '<span class="live">live</span>'
+    badge = '<span class="gone">已删除</span>' if is_deleted else '<span class="live">在线</span>'
     desc = (w.get("description") or "")[:120]
     if len(w.get("description") or "") > 120:
         desc += "..."
@@ -191,7 +191,7 @@ def build_card(w, is_deleted):
     <div class="cover">{cover}</div>
     <div class="body">
         <h3>{name_html}{badge}</h3>
-        <div class="author">&#128100; {esc(w.get('author_name') or 'Unknown')}</div>
+        <div class="author">&#128100;  {esc(w.get('author_name') or 'Unknown')}</div>
         {desc_html}{stats_html}
     </div>
 </div>"""
@@ -199,20 +199,29 @@ def build_card(w, is_deleted):
 def build_html(worlds):
     groups = {}
     for w in worlds:
-        g = w.get("group_name") or "Favorites"
+        g = w.get("group_name") or "未分类"
         groups.setdefault(g, []).append(w)
 
-    sections = []
-    for group_name, group_worlds in groups.items():
-        alive = [w for w in group_worlds if w["live"]]
-        dead = [w for w in group_worlds if not w["live"]]
+    group_names = list(groups.keys())
+
+    # Build tab buttons
+    tabs_html = ""
+    for i, gname in enumerate(group_names):
+        active = "active" if i == 0 else ""
+        count = len(groups[gname])
+        tabs_html += f'<button class="tab-btn {active}" onclick="switchTab(\'{esc(gname)}\')">{esc(gname)}<span class="tab-count">{count}</span></button>'
+
+    # Build tab content sections
+    sections = ""
+    for i, (gname, gworlds) in enumerate(groups.items()):
+        alive = [w for w in gworlds if w["live"]]
+        dead = [w for w in gworlds if not w["live"]]
         cards = "".join(build_card(w, False) for w in alive)
         cards += "".join(build_card(w, True) for w in dead)
-
-        sections.append(f"""<div class="group-section">
-    <div class="group-header">{esc(group_name)} <span class="group-count">{len(group_worlds)} worlds</span></div>
-    <div class="grid">{cards}</div>
-</div>""")
+        visible = "" if i == 0 else " hidden"
+        sections += f'<div class="tab-content{visible}" id="tab-{esc(gname)}">'
+        sections += f'<div class="group-header">{esc(gname)} <span class="group-count">{len(gworlds)} 个世界</span></div>'
+        sections += f'<div class="grid">{cards}</div></div>'
 
     total_alive = sum(1 for w in worlds if w["live"])
     total_dead = sum(1 for w in worlds if not w["live"])
@@ -223,7 +232,7 @@ def build_html(worlds):
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>vrcmaps &middot; VRChat World Browser</title>
+<title>vrcmaps &middot; VRChat 世界收藏</title>
 <style>
 *{{margin:0;padding:0;box-sizing:border-box}}
 body{{background:#0d1117;color:#e6edf3;font-family:-apple-system,BlinkMacSystemFont,"Microsoft YaHei",sans-serif;line-height:1.6}}
@@ -235,10 +244,21 @@ header .sub{{color:#8b949e;font-size:0.85em;margin-top:4px}}
 .hs-dead{{color:#f85149}}
 .hs-time{{color:#484f58}}
 main{{max-width:960px;margin:0 auto;padding:24px}}
-.info-box{{background:rgba(88,166,255,0.06);border:1px solid rgba(88,166,255,0.15);border-radius:8px;padding:12px 18px;margin-bottom:24px;font-size:0.85em;color:#8b949e;line-height:1.6}}
-.group-section{{margin-bottom:32px}}
-.group-header{{font-size:1.15em;font-weight:600;color:#f0883e;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid #30363d}}
+/* Tab bar */
+.tab-bar{{display:flex;gap:6px;margin-bottom:24px;flex-wrap:wrap;justify-content:center}}
+.tab-btn{{padding:8px 18px;border-radius:20px;border:1px solid #30363d;background:#161b22;color:#8b949e;cursor:pointer;font-size:0.9em;transition:all 0.2s}}
+.tab-btn:hover{{border-color:#58a6ff;color:#e6edf3}}
+.tab-btn.active{{background:rgba(88,166,255,0.15);color:#58a6ff;border-color:#58a6ff}}
+.tab-count{{font-size:0.75em;color:#484f58;margin-left:6px}}
+.tab-btn.active .tab-count{{color:#58a6ff}}
+.tab-content.hidden{{display:none}}
+/* Info box */
+.info-box{{background:rgba(88,166,255,0.06);border:1px solid rgba(88,166,255,0.15);border-radius:8px;padding:12px 18px;margin-bottom:24px;font-size:0.85em;color:#8b949e;line-height:1.6;text-align:center}}
+.info-box a{{color:#58a6ff}}
+/* Group */
+.group-header{{font-size:1.0em;font-weight:600;color:#f0883e;margin-bottom:14px;padding-bottom:6px;border-bottom:1px solid #30363d}}
 .group-count{{font-weight:400;font-size:0.8em;color:#8b949e;margin-left:8px}}
+/* Grid */
 .grid{{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}}
 .card{{background:#161b22;border:1px solid #30363d;border-radius:12px;overflow:hidden;transition:border-color 0.2s;display:flex;flex-direction:column}}
 .card:hover{{border-color:#58a6ff}}
@@ -258,76 +278,42 @@ main{{max-width:960px;margin:0 auto;padding:24px}}
 .del-note{{color:#f85149;font-size:0.75em}}
 footer{{text-align:center;color:#484f58;font-size:0.8em;padding:24px;border-top:1px solid #30363d;margin-top:24px}}
 footer a{{color:#58a6ff;text-decoration:none}}
-@media(max-width:600px){{.grid{{grid-template-columns:1fr}}}}
+@media(max-width:600px){{.grid{{grid-template-columns:1fr}}.tab-bar{{gap:4px}}.tab-btn{{padding:6px 12px;font-size:0.8em}}}}
 </style>
 </head>
 <body>
 <header>
 <h1>vrcmaps</h1>
-<div class="sub">VRChat World Browser &mdash; auto-reads local VRCX favorites</div>
+<div class="sub">VRChat 世界收藏 &mdash; 自动读取本机 VRCX 收藏夹</div>
 <div class="header-stats">
-    <span class="hs-live">{total_alive} live</span>
-    <span class="hs-dead">{total_dead} deleted</span>
-    <span class="hs-time">refreshed {now}</span>
+    <span class="hs-live">{total_alive} 在线</span>
+    <span class="hs-dead">{total_dead} 已删除</span>
+    <span class="hs-time">更新于 {now}</span>
 </div>
 </header>
 <main>
 <div class="info-box">
-    Data auto-loaded from local VRCX client database. World stats and covers fetched from VRChat public API (no login required).
-    <br><a href="/" style="color:#58a6ff">Refresh page to reload data</a>
+    数据自动从本机 VRCX 数据库读取，通过 VRChat 公开 API 获取实时数据与封面。
+    <br><a href="/" style="color:#58a6ff">刷新页面</a>
 </div>
-{''.join(sections)}
+<div class="tab-bar">{tabs_html}</div>
+{sections}
 </main>
 <footer>
     <p>vrcmaps &middot; <a href="https://github.com/sodakitten/vrcmaps" target="_blank">github.com/sodakitten/vrcmaps</a></p>
 </footer>
+<script>
+function switchTab(name) {{
+    document.querySelectorAll('.tab-btn').forEach(function(b) {{ b.classList.remove('active'); }});
+    document.querySelectorAll('.tab-content').forEach(function(c) {{ c.classList.add('hidden'); }});
+    var btn = document.querySelector('.tab-btn[onclick*="'+name+'"]');
+    if(btn) btn.classList.add('active');
+    var tab = document.getElementById('tab-'+name);
+    if(tab) tab.classList.remove('hidden');
+}}
+</script>
 </body>
 </html>"""
-
-# ── HTTP server ─────────────────────────────────────────────
-
-class VrcMapHandler(SimpleHTTPRequestHandler):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, directory=os.path.dirname(os.path.abspath(__file__)), **kwargs)
-
-    def log_message(self, format, *args):
-        pass  # silent
-
-def start_server():
-    server = HTTPServer(("127.0.0.1", PORT), VrcMapHandler)
-    log("[vrcmaps] Server running at http://127.0.0.1:{PORT}")
-    webbrowser.open(f"http://127.0.0.1:{PORT}")
-    try:
-        server.serve_forever()
-    except KeyboardInterrupt:
-        log("\n[vrcmaps] Shutting down...")
-        server.shutdown()
-
-# ── Main ────────────────────────────────────────────────────
-
-def write_loading_page():
-    html = """<!DOCTYPE html>
-<html lang="zh-CN">
-<head><meta charset="UTF-8"><meta http-equiv="refresh" content="3">
-<title>vrcmaps</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{background:#0d1117;color:#e6edf3;font-family:-apple-system,BlinkMacSystemFont,"Microsoft YaHei",sans-serif;
-display:flex;align-items:center;justify-content:center;height:100vh;text-align:center}
-h1{color:#58a6ff;font-size:1.4em;margin-bottom:8px}
-p{color:#8b949e;font-size:0.9em}
-.spinner{display:inline-block;width:40px;height:40px;border:3px solid #30363d;border-top-color:#58a6ff;
-border-radius:50%;animation:spin 1s linear infinite;margin-bottom:16px}
-@keyframes spin{to{transform:rotate(360deg)}}
-</style></head>
-<body><div>
-<div class="spinner"></div>
-<h1>vrcmaps</h1>
-<p>Reading VRCX database and fetching VRChat data...</p>
-<p style="font-size:0.75em;margin-top:12px;color:#484f58">This page will refresh automatically when ready</p>
-</div></body></html>"""
-    with open(HTML_PATH, "w", encoding="utf-8") as f:
-        f.write(html)
 
 def main():
     log("[vrcmaps] Starting...")
