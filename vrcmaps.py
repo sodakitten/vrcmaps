@@ -318,29 +318,11 @@ function switchTab(name) {{
 
 
 def write_loading_page():
-    html = """<!DOCTYPE html>
-<html lang="zh-CN">
-<head><meta charset="UTF-8"><meta http-equiv="refresh" content="3">
-<title>vrcmaps</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{background:#0d1117;color:#e6edf3;font-family:-apple-system,BlinkMacSystemFont,"Microsoft YaHei",sans-serif;
-display:flex;align-items:center;justify-content:center;height:100vh;text-align:center}
-h1{color:#58a6ff;font-size:1.4em;margin-bottom:8px}
-p{color:#8b949e;font-size:0.9em}
-.spinner{display:inline-block;width:40px;height:40px;border:3px solid #30363d;border-top-color:#58a6ff;
-border-radius:50%;animation:spin 1s linear infinite;margin-bottom:16px}
-@keyframes spin{to{transform:rotate(360deg)}}
-</style></head>
-<body><div>
-<div class="spinner"></div>
-<h1>vrcmaps</h1>
-<p>""" + loading_text + """</p>
-<p style="font-size:0.75em;margin-top:12px;color:#484f58">{'Page will refresh automatically' if LANG == 'en' else '页面将自动刷新'}</p>
-</div></body></html>"""
+    t1 = "Reading VRCX database, fetching VRChat data..." if LANG == "en" else "正在读取 VRCX 数据库，获取 VRChat 实时数据..."
+    t2 = "Page will refresh automatically" if LANG == "en" else "页面将自动刷新"
+    html = "<!DOCTYPE html>\n<html lang=\"zh-CN\">\n<head><meta charset=\"UTF-8\"><meta http-equiv=\"refresh\" content=\"3\">\n<title>vrcmaps</title>\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{background:#0d1117;color:#e6edf3;font-family:-apple-system,BlinkMacSystemFont,\"Microsoft YaHei\",sans-serif;\ndisplay:flex;align-items:center;justify-content:center;height:100vh;text-align:center}\nh1{color:#58a6ff;font-size:1.4em;margin-bottom:8px}\np{color:#8b949e;font-size:0.9em}\n.spinner{display:inline-block;width:40px;height:40px;border:3px solid #30363d;border-top-color:#58a6ff;\nborder-radius:50%;animation:spin 1s linear infinite;margin-bottom:16px}\n@keyframes spin{to{transform:rotate(360deg)}}\n</style></head>\n<body><div>\n<div class=\"spinner\"></div>\n<h1>vrcmaps</h1>\n<p>" + t1 + "</p>\n<p style=\"font-size:0.75em;margin-top:12px;color:#484f58\">" + t2 + "</p>\n</div></body></html>"
     with open(HTML_PATH, "w", encoding="utf-8") as f:
         f.write(html)
-
 
 class VrcMapHandler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
