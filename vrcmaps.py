@@ -16,10 +16,24 @@ from urllib.request import Request, urlopen
 from urllib.error import URLError, HTTPError
 
 # Fix Windows console encoding for CJK characters
-if sys.platform == 'win32':
+if sys.platform == 'win32' and sys.stdout is not None:
     import io
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+
+
+LOG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "vrcmaps.log")
+
+def log(msg):
+    try:
+        print(msg)
+    except Exception:
+        pass
+    try:
+        with open(LOG_FILE, "a", encoding="utf-8") as f:
+            f.write(msg + "\n")
+    except Exception:
+        pass
 
 VRCX_DB = os.path.join(os.environ.get("APPDATA", ""), "VRCX", "VRCX.sqlite3")
 COVER_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "covers")
@@ -63,7 +77,7 @@ def download_image(url, dest, max_redirects=5):
 
 def load_vrcx_favorites():
     if not os.path.exists(VRCX_DB):
-        print(f"[vrcmaps] VRCX database not found: {VRCX_DB}")
+        log("[vrcmaps] VRCX database not found: {VRCX_DB}")
         return []
 
     conn = sqlite3.connect(VRCX_DB)
@@ -83,7 +97,7 @@ def load_vrcx_favorites():
     conn.close()
 
     worlds = [dict(r) for r in rows]
-    print(f"[vrcmaps] Found {len(worlds)} worlds in VRCX favorites")
+    log("[vrcmaps] Found {len(worlds)} worlds in VRCX favorites")
     return worlds
 
 def fetch_live_data(worlds):
@@ -132,10 +146,10 @@ def fetch_live_data(worlds):
                     w["cover_local"] = f"covers/{wid}_cover.png"
 
             cover_status = "yes" if w["cover_local"] else "no"
-            print(f"[vrcmaps]   OK  {w['name']}  heat={w['heat']} fav={w['real_favorites']} visits={w['visits']} cover={cover_status}")
+            log("[vrcmaps]   OK  {w['name']}  heat={w['heat']} fav={w['real_favorites']} visits={w['visits']} cover={cover_status}")
         else:
             w["api_error"] = True
-            print(f"[vrcmaps]   ERR {w.get('name', wid)}  API status={status}")
+            log("[vrcmaps]   ERR {w.get('name', wid)}  API status={status}")
     return worlds
 
 # ── HTML generation ─────────────────────────────────────────
@@ -281,34 +295,69 @@ class VrcMapHandler(SimpleHTTPRequestHandler):
 
 def start_server():
     server = HTTPServer(("127.0.0.1", PORT), VrcMapHandler)
-    print(f"[vrcmaps] Server running at http://127.0.0.1:{PORT}")
+    log("[vrcmaps] Server running at http://127.0.0.1:{PORT}")
     webbrowser.open(f"http://127.0.0.1:{PORT}")
     try:
         server.serve_forever()
     except KeyboardInterrupt:
-        print("\n[vrcmaps] Shutting down...")
+        log("\n[vrcmaps] Shutting down...")
         server.shutdown()
 
 # ── Main ────────────────────────────────────────────────────
 
-def main():
-    print("[vrcmaps] Starting...")
-    print(f"[vrcmaps] VRCX database: {VRCX_DB}")
+def write_loading_page():
+    html = """<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><meta http-equiv="refresh" content="3">
+<title>vrcmaps</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d1117;color:#e6edf3;font-family:-apple-system,BlinkMacSystemFont,"Microsoft YaHei",sans-serif;
+display:flex;align-items:center;justify-content:center;height:100vh;text-align:center}
+h1{color:#58a6ff;font-size:1.4em;margin-bottom:8px}
+p{color:#8b949e;font-size:0.9em}
+.spinner{display:inline-block;width:40px;height:40px;border:3px solid #30363d;border-top-color:#58a6ff;
+border-radius:50%;animation:spin 1s linear infinite;margin-bottom:16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style></head>
+<body><div>
+<div class="spinner"></div>
+<h1>vrcmaps</h1>
+<p>Reading VRCX database and fetching VRChat data...</p>
+<p style="font-size:0.75em;margin-top:12px;color:#484f58">This page will refresh automatically when ready</p>
+</div></body></html>"""
+    with open(HTML_PATH, "w", encoding="utf-8") as f:
+        f.write(html)
 
+def main():
+    log("[vrcmaps] Starting...")
+    write_loading_page()
+
+    # Start server immediately so browser can connect
+    server_thread = threading.Thread(target=start_server, daemon=True)
+    server_thread.start()
+    time.sleep(0.5)
+
+    # Load data in background
+    log("[vrcmaps] VRCX database: " + VRCX_DB)
     worlds = load_vrcx_favorites()
     if not worlds:
-        print("[vrcmaps] No worlds found. Make sure VRCX is installed and has favorites.")
+        log("[vrcmaps] No worlds found.")
         input("Press Enter to exit...")
         return
 
     worlds = fetch_live_data(worlds)
-
     html = build_html(worlds)
     with open(HTML_PATH, "w", encoding="utf-8") as f:
         f.write(html)
-    print(f"[vrcmaps] HTML written to {HTML_PATH}")
+    log("[vrcmaps] Data ready. Refresh your browser.")
+    log("[vrcmaps] Press Ctrl+C to stop.")
 
-    start_server()
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        log("[vrcmaps] Shutting down...")
 
 if __name__ == "__main__":
     main()
