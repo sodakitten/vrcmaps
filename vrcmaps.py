@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 # vrcmaps - VRChat World Browser
 # Reads local VRCX database, fetches live data from VRChat API, serves as local web app.
 
@@ -39,6 +39,7 @@ VRCX_DB = os.path.join(os.environ.get("APPDATA", ""), "VRCX", "VRCX.sqlite3")
 COVER_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "covers")
 HTML_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "index.html")
 PORT = 3456
+LANG = "zh"
 UA = "vrcmaps/2.0"
 
 # ── VRChat API ──────────────────────────────────────────────
@@ -220,7 +221,7 @@ def build_html(worlds):
         cards += "".join(build_card(w, True) for w in dead)
         visible = "" if i == 0 else " hidden"
         sections += f'<div class="tab-content{visible}" id="tab-{esc(gname)}">'
-        sections += f'<div class="group-header">{esc(gname)} <span class="group-count">{len(gworlds)} 个世界</span></div>'
+        sections += f'<div class="group-header">{esc(gname)} <span class="group-count">{len(gworlds)}  {'worlds</span>' if LANG == 'en' else '个世界</span>'}</div>'
         sections += f'<div class="grid">{cards}</div></div>'
 
     total_alive = sum(1 for w in worlds if w["live"])
@@ -284,17 +285,17 @@ footer a{{color:#58a6ff;text-decoration:none}}
 <body>
 <header>
 <h1>vrcmaps</h1>
-<div class="sub">VRChat 世界收藏 &mdash; 自动读取本机 VRCX 收藏夹</div>
+<div class="sub">{'VRChat World Browser &mdash; auto-reads VRCX favorites' if LANG == 'en' else 'VRChat 世界收藏 &mdash; 自动读取本机 VRCX 收藏夹'}</div>
 <div class="header-stats">
-    <span class="hs-live">{total_alive} 在线</span>
-    <span class="hs-dead">{total_dead} 已删除</span>
-    <span class="hs-time">更新于 {now}</span>
+    <span class="hs-live">{total_alive} {'Live' if LANG == 'en' else '在线'}</span>
+    <span class="hs-dead">{total_dead} {'Deleted' if LANG == 'en' else '已删除'}</span>
+    <span class="hs-time">{'Updated ' + now if LANG == 'en' else '更新于 ' + now}</span>
 </div>
 </header>
 <main>
 <div class="info-box">
-    数据自动从本机 VRCX 数据库读取，通过 VRChat 公开 API 获取实时数据与封面。
-    <br><a href="/" style="color:#58a6ff">刷新页面</a>
+    {'Data from local VRCX database, fetched via VRChat public API.' if LANG == 'en' else '数据自动从本机 VRCX 数据库读取，通过 VRChat 公开 API 获取实时数据与封面。'}
+    <br><a href="/" style="color:#58a6ff">{'Refresh Page' if LANG == 'en' else '刷新页面'}</a>
 </div>
 <div class="tab-bar">{tabs_html}</div>
 {sections}
@@ -334,8 +335,8 @@ border-radius:50%;animation:spin 1s linear infinite;margin-bottom:16px}
 <body><div>
 <div class="spinner"></div>
 <h1>vrcmaps</h1>
-<p>正在读取 VRCX 数据库，获取 VRChat 实时数据...</p>
-<p style="font-size:0.75em;margin-top:12px;color:#484f58">页面将自动刷新</p>
+<p>{'Reading VRCX database, fetching VRChat data...' if LANG == 'en' else '正在读取 VRCX 数据库，获取 VRChat 实时数据...'}</p>
+<p style="font-size:0.75em;margin-top:12px;color:#484f58">{'Page will refresh automatically' if LANG == 'en' else '页面将自动刷新'}</p>
 </div></body></html>"""
     with open(HTML_PATH, "w", encoding="utf-8") as f:
         f.write(html)

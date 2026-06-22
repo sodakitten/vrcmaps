@@ -1,39 +1,48 @@
 # vrcmaps
 
-VRChat world browser — reads local VRCX favorites, fetches live data and covers from VRChat public API.
+VRChat world browser — auto-reads local VRCX favorites, fetches live data and covers from VRChat public API.
+VRChat 世界浏览器 —— 自动读取本机 VRCX 收藏夹，通过 VRChat 公开 API 获取实时数据与封面。
 
-## Quick Start
+## Quick Start / 快速开始
+
+Download from [Releases](https://github.com/sodakitten/vrcmaps/releases):
+从 [Releases](https://github.com/sodakitten/vrcmaps/releases) 下载：
+
+- `vrcmaps-zh.exe` — Chinese UI / 中文界面
+- `vrcmaps-en.exe` — English UI / 英文界面
+
+Or run from source / 或从源码运行：
+
+```bash
+python vrcmaps.py          # Chinese / 中文（默认）
+python vrcmaps.py --lang en  # English / 英文
+```
+
+Browser opens automatically at http://127.0.0.1:3456
+浏览器自动打开 http://127.0.0.1:3456
+
+### Build exe / 打包
 
 ```bash
 pip install pyinstaller
 pyinstaller --onefile --name vrcmaps --add-data "covers;covers" --console vrcmaps.py
 ```
 
-Or run directly:
+## Features / 功能
 
-```bash
-python vrcmaps.py
-```
+- Auto-reads VRCX database / 自动读取 VRCX 数据库
+- Fetches live world stats from VRChat API (no login) / 通过 VRChat 公开 API 获取实时数据（无需登录）
+- Downloads world cover images / 下载世界封面图
+- Groups worlds by VRCX favorite categories / 按 VRCX 收藏分组归类
+- Chinese & English UI / 中英文界面
+- Keyboard shortcuts: R = refresh, Q = quit / 快捷键：R = 刷新, Q = 退出
 
-Browser opens automatically at http://127.0.0.1:3456
+## Requirements / 依赖
 
-On first launch the app reads VRCX database, fetches VRChat API data, and downloads cover images. This takes a few seconds. Refresh the page once data is loaded.
+- Python 3.9+ (stdlib only / 仅标准库)
+- VRCX client installed / 安装 VRCX 客户端
 
-## How it works
-
-1. Reads local VRCX.sqlite3 — `favorite_world` and `cache_world` tables
-2. Calls VRChat public API for each world (no login required)
-3. Downloads cover images from VRChat CDN, caches in `covers/` directory
-4. Generates a static HTML page grouped by favorite categories
-5. Starts a local HTTP server on port 3456
-
-## Dependencies
-
-- Python 3.9+ (stdlib only — `sqlite3`, `http.server`, `urllib`)
-- VRCX client installed locally
-- VRChat public API (api.vrchat.cloud)
-
-## See also
+## See also / 相关
 
 - [VRCX](https://github.com/vrcx-team/VRCX)
 - [VRChat API docs](https://vrchat.community/reference/get-world)
