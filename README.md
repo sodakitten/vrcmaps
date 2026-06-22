@@ -1,4 +1,4 @@
-﻿# vrcmaps
+# vrcmaps
 
 VRChat 世界收藏浏览器 —— 自动读取本地 VRCX 客户端收藏，通过 VRChat 公开 API 获取实时数据与封面。
 
@@ -12,11 +12,11 @@ VRChat 世界收藏浏览器 —— 自动读取本地 VRCX 客户端收藏，�
 
 ## 快速开始
 
-`ash
+```bash
 cd server
 npm install
 npm start
-`
+```
 
 浏览器打开 http://localhost:3456
 
