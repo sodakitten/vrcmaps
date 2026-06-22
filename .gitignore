@@ -1,10 +1,41 @@
-﻿node_modules/
+﻿# Database files (contain personal VRChat data)
 *.db
 *.db-journal
 *.db-wal
 *.db-shm
-server/public/covers/*
+
+# Logs
+*.log
+
+# Downloaded cover images
+server/public/covers/*.png
+server/public/covers/*.jpg
+server/public/covers/*.jpeg
+server/public/covers/*.webp
 !server/public/covers/.gitkeep
+
+# Auth tokens / secrets
+vrchat_auth.txt
 .env
 
-server.log
+# Temporary scripts
+seed.js
+check_*.js
+export_*.js
+import_*.js
+fetch_*.js
+copy_*.js
+list_*.js
+extract_*.js
+read_*.js
+
+# Exported data
+worlds_data.json
+worlds_live.json
+
+# Dependencies
+node_modules/
+
+# Generated HTML (auto-generated on startup)
+server/public/index.html
+server/public/loading.html
